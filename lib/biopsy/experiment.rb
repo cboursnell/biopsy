@@ -81,24 +81,36 @@ module Biopsy
       in_progress = true
       @algorithm.setup @start
       @current_params = @start
+      if @algorithm.is_a? (ParameterSweeper)
+        number = @algorithm.combinations
+        start_time = Time.now
+        so_far=0
+      end
       while in_progress
         run_iteration
         # update the best result
         best = @best
         @best = @algorithm.best
         ptext = @best[:parameters].each_pair.map{ |k, v| "#{k}:#{v}" }.join(", ")
-        if @best &&
-           @best.key?(:score) &&
-           best &&
-           best.key?(:score) &&
-           @best[:score] > best[:score]
-           unless @verbosity == :silent
-             puts "found a new best score: #{@best[:score]} "+
-                  "for parameters #{ptext}"
-           end
+        if @best && @best.key?(:score) && best &&
+           best.key?(:score) && @best[:score] > best[:score]
+
+          unless @verbosity == :silent
+            puts "found a new best score: #{@best[:score]} "+
+                 "for parameters #{ptext}"
+          end
         end
         # have we finished?
         in_progress = !@algorithm.finished?
+        if @algorithm.is_a? (ParameterSweeper)
+          end_time = Time.now
+          so_far += 1
+          if so_far % 100 == 0
+            time_taken = (end_time - start_time)/so_far
+            time_left = time_taken * (number-so_far)
+            puts "time left: #{to_time(time_left)}" 
+          end
+        end
       end
       @algorithm.write_data if @algorithm.respond_to? :write_data
       unless @verbosity == :silent
