@@ -317,13 +317,13 @@ module Biopsy
 
     # use probability distributions to define the
     # initial neighbourhood structure
-    def define_neighbourhood_structure
-      # probabilities
-      @distributions = {}
-      @current[:parameters].each_pair do |param, value|
-        self.update_distribution(param, value)
-      end
-    end
+    # def define_neighbourhood_structure
+    #   # probabilities
+    #   @distributions = {}
+    #   @current[:parameters].each_pair do |param, value|
+    #     self.update_distribution(param, value)
+    #   end
+    # end
 
     # update the neighbourhood structure by adjusting the probability
     # distributions according to total performance of each parameter
@@ -422,15 +422,21 @@ module Biopsy
     # check termination conditions 
     # and return true if met
     def finished?
+      @threads.each_with_index do |t,i|
+        print "[#{i}: #{t.recent_scores.size}] "
+      end
+      puts "|"
       return false unless @threads.all? { |t| t.recent_scores.size == @jump_cutoff }
       probabilities = self.recent_scores_combination_test
-      n_significant = 0
+      @n_significant = 0
+      p probabilities
       probabilities.each do |mann_u, levene| 
         if mann_u <= @adjusted_alpha && levene <= @convergence_alpha
-          n_significant += 1 
+          @n_significant += 1 
         end
       end
-      finish = n_significant >= probabilities.size * 0.5
+      puts "<tabu_search> n_sig = #{@n_significant} / #{probabilities.size}"
+      finish = @n_significant >= probabilities.size * 0.5
     end
 
     # returns a matrix of correlation probabilities for recent
