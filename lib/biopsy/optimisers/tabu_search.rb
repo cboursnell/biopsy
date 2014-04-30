@@ -177,7 +177,9 @@ module Biopsy
 
     attr_reader :threads
 
-    def initialize(parameter_ranges, threads=8, limit=nil)
+
+
+    def initialize(parameter_ranges, cpu_threads, limit)
 
       @ranges = parameter_ranges
 
