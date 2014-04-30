@@ -46,7 +46,7 @@ module Biopsy
 
     # loosen the distribution by increasing the sd
     # and regenerating
-    def loosen(factor=1)
+    def loosen(factor:1)
       @sd += @sd_increment_proportion * factor * @range.size
       self.limit_sd
       self.generate_distribution
@@ -54,8 +54,8 @@ module Biopsy
 
     # tighten the distribution by reducing the sd
     # and regenerating
-    def tighten(factor=1)
-      @sd -= @sd_increment_proportion * factor * @range.size unless (@sd <= 0.01)
+    def tighten(factor:1)
+      @sd -= @sd_increment_proportion * factor * @range.size if @sd > 0.01
       self.limit_sd
       self.generate_distribution
     end
