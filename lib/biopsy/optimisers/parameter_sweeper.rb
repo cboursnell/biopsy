@@ -87,8 +87,12 @@ module Biopsy
 
     def update_best?
       raise "best is nil. should run setup first" if @best.nil?
+      if !@best[:score].nil? && @current[:score] == @best[:score]
+        @best[:history] << @current[:parameters]
+      end
       if @best[:score].nil? || @current[:score] > @best[:score]
         @best = @current.clone
+        @best[:history]=[]
       end
     end
 
