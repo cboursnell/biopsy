@@ -155,6 +155,16 @@ module Biopsy
 
   end # Hood
 
+
+  class TabuThread
+    # base the TabuThread on this 
+    # TabuThread = Struct.new(:best, :tabu, :distributions, 
+    #                     :standard_deviations, :recent_scores, 
+    #                     :iterations_since_best, :backtracks,
+    #                     :current, :current_hood, :loaded,
+    #                     :score_history, :best_history)
+  end
+
   # A Tabu Search implementation with a domain-specific probabilistic
   # learning heuristic for optimising over an unconstrained parameter
   # space with costly objective evaluation.
@@ -164,11 +174,6 @@ module Biopsy
     attr_accessor :max_hood_size, :sd_increment_proportion
     attr_accessor :starting_sd_divisor, :backtrack_cutoff, :jump_cutoff
 
-    Thread = Struct.new(:best, :tabu, :distributions, 
-                        :standard_deviations, :recent_scores, 
-                        :iterations_since_best, :backtracks,
-                        :current, :current_hood, :loaded,
-                        :score_history, :best_history)
 
     def initialize(parameter_ranges, threads=8, limit=nil)
 
