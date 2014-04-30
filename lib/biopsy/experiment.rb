@@ -167,8 +167,15 @@ module Biopsy
     def print_progress(iteration, params, score, best)
       unless [:silent, :quiet].include? @verbosity
         ptext = params.each_pair.map{ |k, v| "#{k}:#{v}" }.join(", ")
-        msg = "run #{iteration}. parameters: #{ptext} | score: #{score}"
-        msg += " | best #{best[:score]}" if (best && best.has_key?(:score))
+        msg = "run #{iteration}. parameters: #{ptext}"
+        l = msg.length
+        msg << " "*(70-l)
+        score = " | score: #{score.round(3)}"
+        l = score.length
+        msg << score
+        msg << " "*(15-l)
+        msg << " | best #{best[:score].round(3)}" if (best && best.has_key?(:score))
+        msg << " conv: #{@algorithm.n_significant}"
         puts msg
       end
     end
