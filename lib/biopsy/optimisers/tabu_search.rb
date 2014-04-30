@@ -199,7 +199,7 @@ module Biopsy
       @hood_no = 1
 
       # adjustment tracking
-      @recent_scores = []
+      # @recent_scores = []
       @jump_cutoff = 10
 
       # logging
@@ -218,6 +218,7 @@ module Biopsy
       @num_threads = 5
       @threads = []
       @convergence_alpha = 0.05
+      @n_significant = 0
       @global_best = {:parameters => nil, :score => nil}
 
     end # initialize
@@ -245,28 +246,37 @@ module Biopsy
 
     def setup_threads
       @num_threads.times do
-        @threads << Thread.new
+        @threads << TabuThread.new # TabuThread struct
       end
       @threads.each do |thread|
-        @current = {
+        thread.current = {
           :parameters => self.random_start_point,
           :score => nil
         }
-        @best = @current
-        @standard_deviations = {}
-        @recent_scores = []
-        @score_history = []
-        @best_history = []
-        @tabu = Set.new
-        self.define_neighbourhood_structure
-        @current_hood = Biopsy::Hood.new(@distributions, @max_hood_size, @tabu)
+        thread.best = thread.current.clone
+        thread.standard_deviations = {}
+        thread.recent_scores = []
+        thread.score_history = []
+        thread.best_history = []
+        thread.tabu = Set.new # this needs to be global to the TabuSearch instance
+
+    
+        # probabilities
+        @distributions = {}
+        thread.current[:parameters].each_pair do |param, value|
+          self.update_distribution(param, value)
+        end
+      
+
+        thread.current_hood = Biopsy::Hood.new(@distributions, @max_hood_size, thread.tabu)
         thread.members.each do |sym|
+          puts sym
           ivar = self.sym_to_ivar_sym sym
           thread[sym] = self.instance_variable_get(ivar)
         end
         thread.loaded = false
       end
-      @current_thread = @num_threads - 2
+      @current_thread = @num_threads - 2 # why? this seems silly. why not start from 0?
       # adjust the alpha for multiple testing in convergence
       @adjusted_alpha = @convergence_alpha / @num_threads
     end
