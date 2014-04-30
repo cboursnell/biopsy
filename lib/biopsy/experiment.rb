@@ -120,6 +120,25 @@ module Biopsy
       return @best
     end
 
+    def to_time seconds
+      days = (seconds/86400).floor
+      hours = ((seconds - days*86400)/3600).floor
+      minutes = ((seconds - hours*3600 - days*86400)/60).floor
+      seconds = (seconds % 60).floor
+      if hours < 10
+        hours = "0#{hours}"
+      end
+      if minutes < 10
+        minutes = "0#{minutes}"
+      end
+      
+      if seconds < 10
+        seconds = "0#{seconds}"
+      end
+
+      "#{days}d #{hours}h#{minutes}m#{seconds}s"
+    end
+
     # Runs a single iteration of the optimisation,
     # encompassing the program, objective(s) and optimiser.
     # Returns the output of the optimiser.
