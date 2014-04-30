@@ -83,18 +83,19 @@ module Biopsy
   # structure.
   class Hood
 
-    attr_reader :best
+    attr_reader :best, :tabu, :members, :distributions
 
     def initialize(distributions, max_size, tabu)
       # tabu
       @tabu = tabu 
       # neighbourhood
-      @max_size = max_size
+      @max_size = max_size # number of neighbours that will be created
       @members = []
       @best = {
         :parameters => nil,
-        :score => 0.0
+        :score => nil
       }
+      @give_up = 100 # this should be set based on the number of parameters
       # probabilities
       @distributions = distributions
       self.populate
