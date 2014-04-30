@@ -18,11 +18,11 @@ module Biopsy
   # distributions acts as a probabilistic neighbourhood structure.
   class Distribution
 
-    attr_reader :sd
+    attr_reader :sd, :mean, :maxsd, :minsd, :dist
 
     # create a new Distribution
     def initialize(mean, range, sd_increment_proportion, sd)
-      @mean = mean
+      @mean = mean # index in range
       @maxsd = range.size * 0.66
       @minsd = 0.5
       @sd = sd
