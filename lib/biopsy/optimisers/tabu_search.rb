@@ -173,7 +173,9 @@ module Biopsy
     attr_reader :current, :best, :hood_no
     attr_accessor :max_hood_size, :sd_increment_proportion
     attr_accessor :starting_sd_divisor, :backtrack_cutoff, :jump_cutoff
+    attr_reader :n_significant
 
+    attr_reader :threads
 
     def initialize(parameter_ranges, threads=8, limit=nil)
 
