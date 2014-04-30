@@ -105,16 +105,18 @@ module Biopsy
     def generate_neighbour
       n = 0
       begin
-        if n >= 100
+        if n >= @give_up
           # taking too long to generate a neighbour, 
           # loosen the neighbourhood structure so we explore further
           # debug("loosening distributions")
           @distributions.each do |param, dist|
             dist.loosen
+            n = 0 # if you don't set this back to zero you'll keep loosening
+                  # repeatedly until you get a non-tabu neighbour
           end
         end
         # preform the probabilistic step move for each parameter
-        neighbour = Hash[@distributions.map { |param, dist| [param, dist.draw] }]
+        neighbour = Hash[ @distributions.map { |param, dist| [param, dist.draw] }]
         n += 1
       end while self.is_tabu?(neighbour)
       @tabu << neighbour
