@@ -67,14 +67,11 @@ module Biopsy
 
     # draw from the distribution
     def draw
-      r = @dist.rng.to_i
+      r = @dist.rng.round.to_i
       raise "drawn number must be an integer" unless r.is_a? Integer
       # keep the value inside the allowed range
-      r = 0 - r if r < 0
-      if r >= @range.size
-        diff = 1 + r - @range.size
-        r = @range.size - diff
-      end
+      r = 0 if r < 0
+      r = @range.size - 1 if r >= @range.size
       @range[r]
     end
 
