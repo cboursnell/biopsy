@@ -125,7 +125,9 @@ module Biopsy
 
     # update best?
     def update_best? current
-      @best = current.clone if current[:score] > @best[:score]
+      if @best[:score].nil? || current[:score] > @best[:score]
+        @best = current.clone
+      end
     end
 
     # true if location is tabu
