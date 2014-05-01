@@ -58,6 +58,14 @@ class TestTabu < Test::Unit::TestCase
       assert_equal @d.dist.get_standard_deviation, 0.5
     end
 
+    should "loosen a distribution all the way" do
+      n = 0 # to stop possible infinite loops
+      while !@d.loosen && n < 100
+        n += 1
+      end
+      assert_equal @d.loosen, true
+    end
+
     should "reduce sd to the minimum" do
       @d.set_sd_min
       assert_equal @d.sd, 0.5
