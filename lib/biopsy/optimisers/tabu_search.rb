@@ -29,14 +29,26 @@ module Biopsy
       self.limit_sd
       @range = range
       @sd_increment_proportion = sd_increment_proportion
-      self.generate_distribution
-      rescue
-        raise "generation of distribution with mean: #{@mean}, sd: #{@sd} failed."
+      self.generate_distribution @mean, @sd
     end
 
     # generate the distribution
-    def generate_distribution
-      @dist = Rubystats::NormalDistribution.new(@mean, @sd)
+    def generate_distribution mean, sd
+      unless mean && sd
+        raise RuntimeError, "generation of distribution with "+
+                            "mean: #{mean}, sd: #{sd} failed."
+      end
+      @dist = Rubystats::NormalDistribution.new(mean, sd)
+    end
+
+    def update mean, sd
+      unless mean && sd
+        raise RuntimeError, "generation of distribution with "+
+                            "mean: #{mean}, sd: #{sd} failed."
+      end
+      @mean = mean
+      @sd = sd
+      @dist = Rubystats::NormalDistribution.new(mean, sd)
     end
 
     def limit_sd
@@ -49,7 +61,8 @@ module Biopsy
     def loosen(factor:1)
       @sd += @sd_increment_proportion * factor * @range.size
       self.limit_sd
-      self.generate_distribution
+      self.generate_distribution @mean, @sd
+      @sd == @maxsd # is this as loose as it can be made?
     end
 
     # tighten the distribution by reducing the sd
@@ -57,7 +70,8 @@ module Biopsy
     def tighten(factor:1)
       @sd -= @sd_increment_proportion * factor * @range.size if @sd > 0.01
       self.limit_sd
-      self.generate_distribution
+      self.generate_distribution @mean, @sd
+      @sd == @minsd # is this as tight as it can be made?
     end
 
     # set standard deviation to the minimum possible value
@@ -115,22 +129,31 @@ module Biopsy
         :parameters => nil,
         :score => nil
       }
-      @give_up = 100 # this should be set based on the number of parameters
       # probabilities
-      @distributions = distributions
+      @sd = sd
+      @distributions = {}
+      ranges.each_pair do |key, list|
+        @distributions[key] = Biopsy::Distribution.new(
+                                centre[:parameters][key], list, increment, @sd)
+      end
+      @give_up = 50
       self.populate
     end
 
     # generate a single neighbour
     def generate_neighbour
       n = 0
+      f = false
       begin
         if n >= @give_up
           # taking too long to generate a neighbour, 
           # loosen the neighbourhood structure so we explore further
           # debug("loosening distributions")
           @distributions.each do |param, dist|
-            dist.loosen
+            # if this is already as loose as it can go, then stop
+            # loosening and really give up and tell the caller you can't
+            # generate any more neighbours
+            f = dist.loosen
             n = 0 # if you don't set this back to zero you'll keep loosening
                   # repeatedly until you get a non-tabu neighbour
           end
@@ -148,10 +171,31 @@ module Biopsy
       end
     end
 
+    def set_new_centre centre
+      unless centre[:parameters] && centre[:score]
+        raise RuntimeError, "centre has wrong parameters" 
+      end
+      @centre = centre
+      @distributions.each_pair do |key, dist|
+        dist.update centre[:parameters][key], @sd
+      end
     end
 
     # update best?
+    def update_best? new_result
+      new_result[:parameters].each_pair do |key, value|
+        if value < 0 || value >= @ranges[key].size
+          raise RuntimeError, "value #{value} is not an index to range #{key}"
+        end
       end
+      better = false
+      if @centre[:score].nil? || new_result[:score] > @centre[:score]
+        if @best[:score].nil? || new_result[:score] > @best[:score]
+          @best = new_result.clone
+          better = true
+        end
+      end
+      better
     end
 
     # true if location is tabu
@@ -161,32 +205,85 @@ module Biopsy
 
     # generate the population of neighbours
     def populate
-      @max_size.times do |i|
-        self.generate_neighbour
+      fails=0
+      @size.times do |i|
+        if !self.generate_neighbour
+          fails += 1
+          # neighbour generation failed          
+        end
+      end
+      if fails > 0
+        # maybe do something about this?
+        # do some backtracking
+        # and if that fails or can't be done then
+        # add random non-tabu items from the population to the neighbours
+        # Hash[@ranges.map { |p, r| [p, r.sample] }] 
+        #
       end
     end
 
     # return the next neighbour from this Hood
     def next
-      @members.pop
+      @neighbours.pop
     end
 
     # returns true if the current neighbour is
     # the last one in the Hood
     def last?
-      @members.empty?
+      @neighbours.empty?
     end
 
   end # Hood
 
 
   class TabuThread
-    # base the TabuThread on this 
-    # TabuThread = Struct.new(:best, :tabu, :distributions, 
-    #                     :standard_deviations, :recent_scores, 
-    #                     :iterations_since_best, :backtracks,
-    #                     :current, :current_hood, :loaded,
-    #                     :score_history, :best_history)
+
+    attr_accessor :current       # the current set of parameters - needed?
+    attr_accessor :best          # the best parameters and score found so far
+    attr_accessor :distributions # a hash of Distributions with the parameter 
+                                 #   as the key
+    attr_accessor :tabu          # a set of previous parameters that have been
+                                 # explored/scored
+    attr_accessor :recent        # a list of recent parameters and scores
+    attr_accessor :best_history  # a list of best parameters and scores
+    attr_accessor :hood          # the current hood
+
+    def initialize parameter_ranges, start
+      @best = {:parameters => nil, :score => nil}
+      @recent = []
+      @best_history = []
+      @tabu = Set.new # this could be global. but then different threads
+                      # couldn't converge
+      sd = 0.5
+      hood_size = Biopsy::TabuSearch.hood_size
+      sd_inc = Biopsy::TabuSearch::sd_increment_proportion
+      @centre = start
+      @hood = Hood.new(@centre, parameter_ranges, hood_size, sd, sd_inc, @tabu)
+    end
+
+    # get the next neighbour to explore from the current hood
+    def next_candidate
+      if @hood.last?
+        if @best[:score] && @best[:score] > @centre[:score]
+          # update the centre
+          @hood.set_new_centre @best
+        end
+        # make more neighbours from the current centre
+        @hood.populate
+      end
+      @current = {:parameters => @hood.next, :score => nil}
+    end
+
+    def add_result params, result
+      # check that the parameters i'm getting back are the ones i sent out
+      if params == @current[:parameters]
+        @current[:score] = result
+      end
+      if @hood.update_best? @current
+        @best = @current
+        @best_history << @current
+      end
+    end
   end
 
   # A Tabu Search implementation with a domain-specific probabilistic
@@ -194,349 +291,29 @@ module Biopsy
   # space with costly objective evaluation.
   class TabuSearch #< OptmisationAlgorithm
 
-    attr_reader :current, :best, :hood_no
-    attr_accessor :max_hood_size, :sd_increment_proportion
-    attr_accessor :starting_sd_divisor, :backtrack_cutoff, :jump_cutoff
-    attr_reader :n_significant
+    @@sd_increment_proportion = 0.05
+    @@hood_size = 5
 
-    attr_reader :threads
-
-
-
-    def initialize(parameter_ranges, cpu_threads, limit)
-
-      @ranges = parameter_ranges
-
-      # solution tracking
-      @best = nil
-
-      # tabu list
-      @tabu = Set.new
-      @tabu_limit = nil
-      @start_time = Time.now
-
-      # neighbourhoods
-      @max_hood_size = 5
-      @starting_sd_divisor = 5
-      @standard_deviations = {}
-      @sd_increment_proportion = 0.05
-      @hood_no = 1
-
-      # adjustment tracking
-      # @recent_scores = []
-      @jump_cutoff = 10
-
-      # logging
-      @score_history = []
-      @best_history = []
-      @log_data = false
-      @logfiles = {}
-      self.log_setup
-
-      # backtracking
-      @iterations_since_best = 0
-      @backtrack_cutoff = 2
-      @backtracks = 1.0
-
-      # convergence
-      @num_threads = 5
-      @threads = []
-      @convergence_alpha = 0.05
-      @n_significant = 0
-      @global_best = {:parameters => nil, :score => nil}
-
-    end # initialize
-
-    def setup start_point
-      @current = {:parameters => start_point, :score => nil}
-      @best = @current
-      self.setup_threads
+    def initialize parameter_ranges, start
     end
-
-    # given the score for a parameter set,
-    # return the next parameter set to be scored
-    def run_one_iteration(parameters, score)
-      @current = {:parameters => parameters, :score => score}
-      # update best score?
-      self.update_best?
-      # log any data
-      self.log
-      # cycle threads
-      self.load_next_thread
-      # get next parameter set to score
-      self.next_candidate
-      @current[:parameters]
-    end # run_one_iteration
 
     def setup_threads
-      @num_threads.times do
-        @threads << TabuThread.new # TabuThread struct
-      end
-      @threads.each do |thread|
-        thread.current = {
-          :parameters => self.random_start_point,
-          :score => nil
-        }
-        thread.best = thread.current.clone
-        thread.standard_deviations = {}
-        thread.recent_scores = []
-        thread.score_history = []
-        thread.best_history = []
-        thread.tabu = Set.new # this needs to be global to the TabuSearch instance
-
-    
-        # probabilities
-        @distributions = {}
-        thread.current[:parameters].each_pair do |param, value|
-          self.update_distribution(param, value)
-        end
-      
-
-        thread.current_hood = Biopsy::Hood.new(@distributions, @max_hood_size, thread.tabu)
-        thread.members.each do |sym|
-          puts sym
-          ivar = self.sym_to_ivar_sym sym
-          thread[sym] = self.instance_variable_get(ivar)
-        end
-        thread.loaded = false
-      end
-      @current_thread = @num_threads - 2 # why? this seems silly. why not start from 0?
-      # adjust the alpha for multiple testing in convergence
-      @adjusted_alpha = @convergence_alpha / @num_threads
     end
 
-    def load_next_thread
-      thread = @threads[@current_thread]
-      if thread.loaded
-        thread.members.each do |sym|
-          ivar = self.sym_to_ivar_sym sym
-          thread[sym] = self.instance_variable_get(ivar)
-        end
-      else
-        thread.loaded = true
-      end
-      @current_thread = (@current_thread + 1) % @num_threads
-      thread = @threads[@current_thread]
-      thread.members.each do |sym|
-        ivar = self.sym_to_ivar_sym sym
-        self.instance_variable_set(ivar, thread[sym])
-      end
+    # experiment used these params to get this result
+    #
+    # take the result and pass it to the current thread
+    def run_one_iteration(params, result)
+      @threads[current_thread].add_result(params, result)
     end
 
-    def update_best?
-      @current_hood.update_best? @current
-      if @best[:score].nil? || @current[:score] > @best[:score]
-        @best = @current.clone
-      else
-        @iterations_since_best += 1
-      end
-      if @global_best[:score].nil? || @best[:score] > @global_best[:score]
-        @global_best = @best.clone
-      end
+    def self.sd_increment_proportion
+      @@sd_increment_proportion
     end
 
-    def best
-      @global_best
+    def self.hood_size
+      @@hood_size
     end
-
-    # use probability distributions to define the
-    # initial neighbourhood structure
-    # def define_neighbourhood_structure
-    #   # probabilities
-    #   @distributions = {}
-    #   @current[:parameters].each_pair do |param, value|
-    #     self.update_distribution(param, value)
-    #   end
-    # end
-
-    # update the neighbourhood structure by adjusting the probability
-    # distributions according to total performance of each parameter
-    def update_neighbourhood_structure
-      self.update_recent_scores
-      best = self.backtrack_or_continue
-      unless @distributions.empty?
-        @standard_deviations = Hash[@distributions.map { |k, d| [k, d.sd] }]
-      end
-      best[:parameters].each_pair do |param, value|
-        self.update_distribution(param, value)
-      end
-    end
-
-    # set the distribution for parameter +:param+ to a new one centered
-    # around the index of +value+
-    def update_distribution(param, value)
-      mean = @ranges[param].index(value)
-      range = @ranges[param]
-      sd = self.sd_for_param(param, range)
-      @distributions[param] = Biopsy::Distribution.new(mean, 
-                                                      range,
-                                                      @sd_increment_proportion,
-                                                      sd)
-    end
-
-    # return the standard deviation to use for +:param+
-    def sd_for_param(param, range)
-      @standard_deviations.empty? ? (range.size.to_f / @starting_sd_divisor) : @standard_deviations[param]
-    end
-
-    # return the correct 'best' location to form a new neighbourhood around
-    # deciding whether to continue progressing from the current location
-    # or to backtrack to a previous good location to explore further
-    def backtrack_or_continue
-      best = nil
-      if (@iterations_since_best / @backtracks) >= @backtrack_cutoff * @max_hood_size
-        self.backtrack
-        best = @best
-      else
-        best = @current_hood.best
-        self.adjust_distributions_using_gradient
-      end
-      if best[:parameters].nil?
-        # this should never happen!
-        best = @best        
-      end
-      best
-    end
-
-    def backtrack
-      @backtracks += 1.0
-      # debug('backtracked to best')
-      @distributions.each_pair { |k, d| d.tighten }
-    end
-
-    # update the array of recent scores
-    def update_recent_scores
-      @recent_scores.unshift @best[:score]
-      @recent_scores = @recent_scores.take @jump_cutoff
-    end
-
-    # use the gradient of recent best scores to update the distributions
-    def adjust_distributions_using_gradient
-      return if @recent_scores.length < 3
-      vx = (1..@recent_scores.length).to_a.to_scale
-      vy = @recent_scores.reverse.to_scale
-      r = Statsample::Regression::Simple.new_from_vectors(vx,vy)
-      slope = r.b
-      if slope > 0
-        @distributions.each_pair { |k, d| d.tighten slope }
-      elsif slope < 0
-        @distributions.each_pair { |k, d| d.loosen slope }
-      end
-    end
-
-    # shift to the next neighbourhood
-    def next_hood
-      @hood_no += 1
-      # debug("entering hood # #{@hood_no}")
-      self.update_neighbourhood_structure
-      @current_hood = Hood.new(@distributions, @max_hood_size, @tabu)
-    end
-
-    # get the next neighbour to explore from the current hood
-    def next_candidate
-      @current[:parameters] = @current_hood.next
-      @current[:score] = nil
-      # exhausted the neighbourhood?
-      if @current_hood.last?
-        # debug(@current_hood.best)
-        self.next_hood
-      end
-    end
-
-    # check termination conditions 
-    # and return true if met
-    def finished?
-      @threads.each_with_index do |t,i|
-        print "[#{i}: #{t.recent_scores.size}] "
-      end
-      puts "|"
-      return false unless @threads.all? { |t| t.recent_scores.size == @jump_cutoff }
-      probabilities = self.recent_scores_combination_test
-      @n_significant = 0
-      p probabilities
-      probabilities.each do |mann_u, levene| 
-        if mann_u <= @adjusted_alpha && levene <= @convergence_alpha
-          @n_significant += 1 
-        end
-      end
-      puts "<tabu_search> n_sig = #{@n_significant} / #{probabilities.size}"
-      finish = @n_significant >= probabilities.size * 0.5
-    end
-
-    # returns a matrix of correlation probabilities for recent
-    # scores between all threads
-    def recent_scores_combination_test
-      combinations = 
-      @threads.map{ |t| t.recent_scores.to_scale }.combination(2).to_a
-      combinations.map do |a, b|
-        [Statsample::Test.u_mannwhitney(a, b).probability_exact,
-         Statsample::Test::Levene.new([a,b]).probability]
-      end
-    end
-
-    # True if this algorithm chooses its own starting point
-    def knows_starting_point?
-      true
-    end
-
-    def log_setup
-      if @log_data
-        require 'csv'
-        @logfiles[:standard_deviations] = CSV.open('standard_deviations.csv', 'w')
-        @logfiles[:best] = CSV.open('best.csv', 'w')
-        @logfiles[:score] = CSV.open('score.csv', 'w')
-        @logfiles[:params] = CSV.open('params.csv', 'w')
-      end
-    end
-
-    def log
-      if @current[:score]
-        @score_history << @current[:score]
-        @best_history << @best[:score]
-      end
-      if @log_data
-        @logfiles[:standard_deviations] << @distributions.map { |k, d| d.sd }
-        @logfiles[:best] << [@best[:score]]
-        @logfiles[:score] << [@current[:score]]
-        @logfiles[:params] << @current[:parameters].map { |k, v| v }
-      end
-    end
-
-    def log_teardown
-      @logfiles.each_pair do |k, f|
-        f.close
-      end
-    end
-
-    def sym_to_ivar_sym sym
-      "@#{sym.to_s}".to_sym
-    end
-
-    def select_starting_point
-      self.random_start_point
-    end
-
-    def random_start_point
-      Hash[@ranges.map { |p, r| [p, r.sample] }] 
-    end
-
-    def write_data
-      require 'csv'
-      now = Time.now.to_i
-      CSV.open("../#{now}_scores.csv", "w") do |c|
-        c << %w(iteration thread score best)
-        @threads.each_with_index do |t, t_idx|
-          sh = t.score_history
-          bh = t.best_history
-          sh.zip(bh).each_with_index do |pair, i|
-            c << [i, t_idx] + pair
-          end
-        end
-      end
-      path = File.expand_path("../#{now}_scores.csv")
-      puts "wrote TabuSearch run data to #{path}"
-    end
-
-  end # TabuSearch
+  end
 
 end # Biopsy
