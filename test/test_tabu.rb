@@ -8,6 +8,7 @@ class TestTabu < Test::Unit::TestCase
 
     setup do
       @range = [0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20]
+      # the mean of the distribution is the index in the range
       @d = Biopsy::Distribution.new(5, @range, 0.1, 1)
     end
 
