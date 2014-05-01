@@ -152,11 +152,18 @@ class TestTabu < Test::Unit::TestCase
     end
 
     should "update the best score" do
-      current = {:parameters => {:a => 2, :b => 250}, :score => 10}
-      @hood.update_best? current
-      assert_equal @hood.best[:score], 10
+      new_score = {:parameters => {:a => 2, :b => 3}, :score => 0.2}
+      assert_equal @hood.update_best?(new_score), true
+      assert_equal @hood.best[:score], 0.2
       assert_equal @hood.best[:parameters][:a], 2
-      assert_equal @hood.best[:parameters][:b], 250
+      assert_equal @hood.best[:parameters][:b], 3
+
+      new_score = {:parameters => {:a => 2, :b => 2}, :score => 0.3}
+      assert_equal @hood.update_best?(new_score), true
+      assert_equal @hood.best[:score], 0.3
+      assert_equal @hood.best[:parameters][:a], 2
+      assert_equal @hood.best[:parameters][:b], 2
+    end
     end
 
     should "loosen distribution if can't make more neighbours" do
