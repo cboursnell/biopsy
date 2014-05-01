@@ -123,6 +123,19 @@ class TestTabu < Test::Unit::TestCase
       assert_equal @hood.tabu.size, 5
     end
 
+    should "check that the means are inside the range" do
+      range1 = [7,8,9,10,11,12,13]
+      range2 = [50,100,150,200,250,300]
+      ranges = {:a => range1, :b => range2}
+      centre = {:parameters => {:a => 3, :b => 100}, :score => 0.1}
+      @sd = 0.5
+      inc = 0.05
+      size = 5
+      assert_raise RuntimeError do
+        hood = Biopsy::Hood.new(centre, ranges, size, @sd, inc, Set.new)
+      end
+    end
+
     should "get the next neighbour from a hood" do
       neighbour = @hood.next
       assert neighbour
