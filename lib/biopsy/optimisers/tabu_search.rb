@@ -61,8 +61,12 @@ module Biopsy
     end
 
     # set standard deviation to the minimum possible value
-    def set_sd_min
+    def set_sd_to_min
       @sd = @minsd
+    end
+
+    def set_sd_to_max
+      @sd = @maxsd
     end
 
     # draw from the distribution

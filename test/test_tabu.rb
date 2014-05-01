@@ -67,7 +67,7 @@ class TestTabu < Test::Unit::TestCase
     end
 
     should "reduce sd to the minimum" do
-      @d.set_sd_min
+      @d.set_sd_to_min
       assert_equal @d.sd, 0.5
     end
 
