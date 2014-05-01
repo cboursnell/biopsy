@@ -96,7 +96,7 @@ module Biopsy
   # structure.
   class Hood
 
-    attr_reader :best, :tabu, :members, :distributions
+    attr_reader :centre, :best, :tabu, :neighbours, :distributions, :size
 
     def initialize(centre, ranges, size, sd, increment, tabu)
       @centre = centre
@@ -138,15 +138,19 @@ module Biopsy
         # preform the probabilistic step move for each parameter
         neighbour = Hash[ @distributions.map { |param, dist| [param, dist.draw] }]
         n += 1
-      end while self.is_tabu?(neighbour)
-      @tabu << neighbour
-      @members << neighbour
+      end while self.is_tabu?(neighbour) && !f
+      if is_tabu?(neighbour)
+        return false
+      else
+        @tabu << neighbour
+        @neighbours << neighbour
+        return true
+      end
+    end
+
     end
 
     # update best?
-    def update_best? current
-      if @best[:score].nil? || current[:score] > @best[:score]
-        @best = current.clone
       end
     end
 

@@ -119,7 +119,7 @@ class TestTabu < Test::Unit::TestCase
 
     should "create a hood with neighbours" do
       assert @hood
-      assert_equal @hood.members.size, 5
+      assert_equal @hood.neighbours.size, 5
       assert_equal @hood.tabu.size, 5
     end
 
