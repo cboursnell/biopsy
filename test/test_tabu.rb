@@ -294,4 +294,25 @@ class TestTabu < Test::Unit::TestCase
 
   end
 
+  # context "Tabu Search" do
+
+  #   setup do
+  #     @ranges = {:a => [0,1,2,3,4,5,6], :b => [50,100,150,200,250,300]}
+  #     @tabu_search = Biopsy::TabuSearch.new(@ranges, 1, 0)
+  #   end
+
+  #   teardown do
+  #   end
+
+  #   should "create a TabuSearch object" do
+  #     assert @tabu_search
+  #   end
+
+  #   should "set up threads" do
+  #     @tabu_search.setup_threads
+  #     assert_equal @tabu_search.threads.length, 5
+  #   end
+
+  # end
+
 end # TestTabu class
