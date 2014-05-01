@@ -22,6 +22,18 @@ class TestTabu < Test::Unit::TestCase
       assert_equal @d.minsd, 0.50
     end
 
+    should "update a distribution" do
+      @d.update(4, 2)
+      assert_equal @d.mean, 4
+      assert_equal @d.sd, 2
+    end
+
+    should "update a distribution with malformed data" do
+      assert_raise RuntimeError do
+        @d.update(nil, 2)
+      end
+    end
+
     should "limit the standard deviation" do
       range = [0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20]
       d = Biopsy::Distribution.new(5, range, 0.1, 100)
