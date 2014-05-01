@@ -71,12 +71,21 @@ module Biopsy
 
     # draw from the distribution
     def draw
-      r = @dist.rng.round.to_i
-      raise "drawn number must be an integer" unless r.is_a? Integer
+      r = @dist.rng.round.to_i # r is an index into range
+      unless r.is_a? Integer
+        raise RuntimeError, "drawn number must be an integer"
+      end
       # keep the value inside the allowed range
-      r = 0 if r < 0
-      r = @range.size - 1 if r >= @range.size
-      @range[r]
+      if r < 0
+        r = @range.size + r
+      elsif r >= @range.size
+        r = r - @range.size
+      end
+      if !@range[r]
+        puts "r = #{r}, range = #{@range}, range[r] = #{@range[r]}"
+      end
+      #@range[r] # return the value in the range at position r
+      r
     end
 
   end # Distribution

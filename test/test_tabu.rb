@@ -81,9 +81,9 @@ class TestTabu < Test::Unit::TestCase
       sd = 0.0
       1000.times do
         v = @d.draw
-        sd += (@range.index(v)-@d.mean)**2
-        sum += v
-        assert @range.include?(v)
+        sd += (v - @d.mean)**2
+        sum += @range[v]
+        assert @range[v]
       end
       sum /= 1000.0 # should be close to dist.mean
       sd /= 1000.0
