@@ -139,7 +139,7 @@ class TestTabu < Test::Unit::TestCase
     should "get the next neighbour from a hood" do
       neighbour = @hood.next
       assert neighbour
-      assert_equal neighbour.size, 2
+      assert_equal neighbour.size, 2 # 2 parameters
     end
 
     should "check if there are no neighbours left" do
