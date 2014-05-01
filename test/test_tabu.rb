@@ -188,7 +188,12 @@ class TestTabu < Test::Unit::TestCase
       end
     end
 
-  end # Hood context
+    should "fail on malformed centre" do
+      hash = {:parameters => {:a => 2}}
+      assert_raise RuntimeError do
+        @hood.set_new_centre hash
+      end
+    end
 
   context "Tabu Search" do
 
