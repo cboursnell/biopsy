@@ -238,13 +238,58 @@ class TestTabu < Test::Unit::TestCase
       assert_equal @tabu_thread.best_history.size, 1
     end
 
-    should "create a TabuSearch object" do
-      assert @tabu_search
+    # should "do something sensible when you ask for the next candidate "+
+    #        "but there aren't any" do
+    #   assert nil, 'not yet implemented'
+    # end
+
+    should "generate a new list of neighbours when previous neighhours "+
+           "were not any better" do
+      fudge_best = {:parameters => {:a => 1, :b => 3}, :score => 0.1}
+      # mark the best as a non-nil score so new scores can be below it
+      @tabu_thread.best = fudge_best
+      list = @tabu_thread.hood.neighbours.clone
+      assert_equal list.size, 5
+      candidate = @tabu_thread.next_candidate
+      @tabu_thread.add_result candidate[:parameters], 0.0
+      candidate = @tabu_thread.next_candidate
+      @tabu_thread.add_result candidate[:parameters], 0.0
+      candidate = @tabu_thread.next_candidate
+      @tabu_thread.add_result candidate[:parameters], 0.0
+      candidate = @tabu_thread.next_candidate
+      @tabu_thread.add_result candidate[:parameters], 0.0
+      candidate = @tabu_thread.next_candidate
+      @tabu_thread.add_result candidate[:parameters], 0.0
+      candidate = @tabu_thread.next_candidate
+      @tabu_thread.add_result candidate[:parameters], 0.0
+      list2 = @tabu_thread.hood.neighbours.clone
+      # list2 should contain no items from list1
+      list2.each do |n|
+        assert_equal list.include?(n), false
+      end
     end
 
-    should "set up threads" do
-      @tabu_search.setup_threads
-      assert_equal @tabu_search.threads.length, 5
+    should "move the centre of the hood when new best is found" do
+      assert_equal @tabu_thread.hood.neighbours.size, 5,
+        "neighbourhood size is #{@tabu_thread.hood.neighbours.size}, should "+
+        "be 5"
+      best_candidate = @tabu_thread.next_candidate # 1
+      @tabu_thread.add_result best_candidate[:parameters], 1.0
+      candidate = @tabu_thread.next_candidate # 2
+      @tabu_thread.add_result candidate[:parameters], 0.0
+      candidate = @tabu_thread.next_candidate # 3
+      @tabu_thread.add_result candidate[:parameters], 0.0
+      candidate = @tabu_thread.next_candidate # 4
+      @tabu_thread.add_result candidate[:parameters], 0.0
+      candidate = @tabu_thread.next_candidate # 5
+      @tabu_thread.add_result candidate[:parameters], 0.0
+      candidate = @tabu_thread.next_candidate # 6
+      assert @tabu_thread.hood.neighbours.size > 0
+        "new neighbourhood size is #{@tabu_thread.hood.neighbours.size}, "+
+        "should be 5"
+      assert_equal @tabu_thread.hood.centre, best_candidate, 
+        "best candidate #{best_candidate} should equal new "+
+        "centre #{@tabu_thread.hood.centre}"
     end
 
   end
