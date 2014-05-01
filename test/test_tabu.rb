@@ -88,9 +88,15 @@ class TestTabu < Test::Unit::TestCase
       sum /= 1000.0 # should be close to dist.mean
       sd /= 1000.0
       sd = Math.sqrt(sd)
-      assert_equal sum.round, @range[@d.mean]
-      assert_equal sum.round, @range[@d.dist.get_mean]
-      assert_equal sd.round(0), @d.dist.get_standard_deviation
+      assert_equal sum.round, @range[@d.mean], "mean"
+      assert_equal sum.round, @range[@d.dist.get_mean], "mean 2"
+      assert_equal sd.round(0), @d.dist.get_standard_deviation, "sd"
+    end
+
+    should "fail with malformed arguments" do
+      assert_raise RuntimeError do
+        d = Biopsy::Distribution.new(nil, @range, 0.1, 1)
+      end
     end
 
   end # Distribution context
