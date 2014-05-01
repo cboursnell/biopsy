@@ -71,6 +71,11 @@ class TestTabu < Test::Unit::TestCase
       assert_equal @d.sd, 0.5
     end
 
+    should "set sd to the maximum" do
+      @d.set_sd_to_max
+      assert_equal @d.sd.round(5), 7.26000
+    end
+
     should "draw from distribution" do
       sum = 0.0
       sd = 0.0
