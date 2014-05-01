@@ -204,7 +204,38 @@ class TestTabu < Test::Unit::TestCase
       @tabu_thread = Biopsy::TabuThread.new(@ranges, @start)
     end
 
-    teardown do
+    should "create a tabu thread object" do
+      assert @tabu_thread
+    end
+
+    should "contain a hood object" do
+      h = @tabu_thread.hood
+      assert h
+      assert_equal h.best[:score], nil
+      assert_equal h.distributions.size, 2
+    end
+
+    should "return a new candidate set of parameters" do
+      candidate = @tabu_thread.next_candidate
+      assert candidate
+      assert_equal candidate[:parameters].size, 2
+      assert_equal candidate[:score], nil
+    end
+
+    should "add result" do
+      candidate = @tabu_thread.next_candidate
+      @tabu_thread.add_result candidate[:parameters], 0.4
+      # should update the best with the new result
+      assert_equal @tabu_thread.best[:score], 0.4
+      # should put the new result into the best history
+      assert_equal @tabu_thread.best_history.size, 1
+
+      candidate = @tabu_thread.next_candidate
+      @tabu_thread.add_result candidate[:parameters], 0.2
+      # the best score should still be the same
+      assert_equal @tabu_thread.best[:score], 0.4
+      # nothing new should have been added to the best history
+      assert_equal @tabu_thread.best_history.size, 1
     end
 
     should "create a TabuSearch object" do
