@@ -98,12 +98,19 @@ module Biopsy
 
     attr_reader :best, :tabu, :members, :distributions
 
-    def initialize(distributions, max_size, tabu)
+    def initialize(centre, ranges, size, sd, increment, tabu)
+      @centre = centre
+      @ranges = ranges
+      @centre[:parameters].each_pair do |key, value|
+        if value < 0 || value >= @ranges[key].size
+          raise RuntimeError, "value #{value} is not an index to range #{key}"
+        end
+      end
       # tabu
       @tabu = tabu 
       # neighbourhood
-      @max_size = max_size # number of neighbours that will be created
-      @members = []
+      @size = size # number of neighbours that will be created
+      @neighbours = []
       @best = {
         :parameters => nil,
         :score => nil

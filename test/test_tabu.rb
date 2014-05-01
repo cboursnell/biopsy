@@ -104,12 +104,14 @@ class TestTabu < Test::Unit::TestCase
   context "Hood" do
 
     setup do
-      range1 = [0,1,2,3,4,5,6]
+      range1 = [7,8,9,10,11,12,13]
       range2 = [50,100,150,200,250,300]
-      d1 = Biopsy::Distribution.new(3, range1, 0.05, 0.5)
-      d2 = Biopsy::Distribution.new(2, range2, 0.05, 0.5)
-      hash = {:a => d1, :b => d2}
-      @hood = Biopsy::Hood.new(hash, 5, Set.new)
+      ranges = {:a => range1, :b => range2}
+      centre = {:parameters => {:a => 3, :b => 2}, :score => 0.1}
+      @sd = 0.5
+      inc = 0.05
+      size = 5
+      @hood = Biopsy::Hood.new(centre, ranges, size, @sd, inc, Set.new)
     end
 
     teardown do
