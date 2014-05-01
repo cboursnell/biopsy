@@ -164,6 +164,12 @@ class TestTabu < Test::Unit::TestCase
       assert_equal @hood.best[:parameters][:a], 2
       assert_equal @hood.best[:parameters][:b], 2
     end
+
+    should "not update the best score because this one is worse" do
+      new_score = {:parameters => {:a => 6, :b => 4}, :score => 0.01}
+      @hood.update_best? new_score
+      assert_equal @hood.best[:score], nil
+      assert_equal @hood.best[:parameters], nil
     end
 
     should "loosen distribution if can't make more neighbours" do
