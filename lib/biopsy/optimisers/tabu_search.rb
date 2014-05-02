@@ -332,9 +332,14 @@ module Biopsy
     #
     # return a new set of parameters to experiment
     def run_one_iteration(params, result)
-      @threads[current_thread].add_result(params, result)
+      raise RuntimeError, "haven't made any threads yet" if @threads.size==0
+      @total_number_of_iterations += 1
+      @threads[@current_thread].add_result(params, result)
+      @current_thread = (@current_thread + 1) % @num_threads
+      @threads[@current_thread].next_candidate
     end
 
+    # class methods
     def self.sd_increment_proportion
       @@sd_increment_proportion
     end
