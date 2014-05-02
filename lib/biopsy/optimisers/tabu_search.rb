@@ -247,7 +247,7 @@ module Biopsy
       @neighbours.empty?
     end
 
-  end # Hood 
+  end # Hood
 
   class TabuThread
 
