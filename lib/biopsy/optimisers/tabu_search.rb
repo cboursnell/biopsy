@@ -297,12 +297,17 @@ module Biopsy
     def initialize parameter_ranges, start
     end
 
+    def setup start
+    end
+
     def setup_threads
     end
 
     # experiment used these params to get this result
     #
     # take the result and pass it to the current thread
+    #
+    # return a new set of parameters to experiment
     def run_one_iteration(params, result)
       @threads[current_thread].add_result(params, result)
     end
@@ -313,6 +318,15 @@ module Biopsy
 
     def self.hood_size
       @@hood_size
+    end
+
+    def knows_starting_point?
+    end
+
+    def select_starting_point
+    end
+
+    def write_data
     end
   end
 
