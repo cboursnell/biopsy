@@ -333,9 +333,19 @@ module Biopsy
     end
 
     def knows_starting_point?
+      true
     end
 
     def select_starting_point
+      self.random_start_point
+    end
+
+    def random_start_point
+      Hash[@ranges.map { |p, r| [p, r.index(r.sample)] }] 
+    end
+
+    def finished?
+      return true if @total_number_of_iterations > 100
     end
 
     def write_data
