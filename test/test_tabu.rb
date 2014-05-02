@@ -235,6 +235,7 @@ class TestTabu < Test::Unit::TestCase
 
     should "create a tabu thread object" do
       assert @tabu_thread
+      assert_equal @tabu_thread.current, {:parameters => @start, :score => nil}
     end
 
     should "contain a hood object" do
