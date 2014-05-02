@@ -280,28 +280,28 @@ class TestTabu < Test::Unit::TestCase
 
     should "generate a new list of neighbours when previous neighhours "+
            "were not any better" do
-      fudge_best = {:parameters => {:a => 1, :b => 3}, :score => 0.1}
-      # mark the best as a non-nil score so new scores can be below it
-      @tabu_thread.best = fudge_best
-      list = @tabu_thread.hood.neighbours.clone
-      assert_equal list.size, 5
-      candidate = @tabu_thread.next_candidate
-      @tabu_thread.add_result candidate[:parameters], 0.0
-      candidate = @tabu_thread.next_candidate
-      @tabu_thread.add_result candidate[:parameters], 0.0
-      candidate = @tabu_thread.next_candidate
-      @tabu_thread.add_result candidate[:parameters], 0.0
-      candidate = @tabu_thread.next_candidate
-      @tabu_thread.add_result candidate[:parameters], 0.0
-      candidate = @tabu_thread.next_candidate
-      @tabu_thread.add_result candidate[:parameters], 0.0
-      candidate = @tabu_thread.next_candidate
-      @tabu_thread.add_result candidate[:parameters], 0.0
-      list2 = @tabu_thread.hood.neighbours.clone
-      # list2 should contain no items from list1
-      list2.each do |n|
-        assert_equal list.include?(n), false
+      @tabu_thread.add_result @start, 0.1 # this scores the centre
+
+      assert_equal @tabu_thread.hood.best[:score], 0.1
+
+      assert_equal @tabu_thread.hood.neighbours.size, 5,
+      "there should be 5 neighbours in the list at the start"
+
+      # draw 5 candidates from the hood. all will be scored badly.
+      5.times do
+        candidate = @tabu_thread.next_candidate
+        @tabu_thread.add_result candidate, 0.0
       end
+
+      # check that the neighbourhood is empty
+      assert_equal @tabu_thread.hood.neighbours.size, 0,
+      "there should be 0 neighbours in the list now"
+
+      # should draw another candidate
+      candidate = @tabu_thread.next_candidate
+
+      # there should at least be 1 new neighbour in the hood yo
+      assert @tabu_thread.hood.neighbours.size > 0
     end
 
     should "move the centre of the hood when new best is found" do
