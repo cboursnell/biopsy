@@ -113,7 +113,7 @@ module Biopsy
   # structure.
   class Hood
 
-    attr_reader :centre, :best, :tabu, :neighbours, :distributions, :size
+    attr_accessor :centre, :best, :tabu, :neighbours, :distributions, :size
 
     def initialize(centre, ranges, size, sd, increment, tabu)
       @centre = centre
@@ -128,6 +128,8 @@ module Biopsy
       # neighbourhood
       @size = size # number of neighbours that will be created
       @neighbours = []
+      # @neighbours << @centre[:parameters] if @centre[:score].nil?
+      @tabu << @centre[:parameters] if @centre[:score].nil?
       @best = {
         :parameters => nil,
         :score => nil
@@ -216,7 +218,7 @@ module Biopsy
 
     # generate the population of neighbours
     def populate
-      fails=0
+      fails = 0
       @size.times do |i|
         if !self.generate_neighbour
           fails += 1
@@ -231,6 +233,7 @@ module Biopsy
         # Hash[@ranges.map { |p, r| [p, r.sample] }] 
         #
       end
+      fails
     end
 
     # return the next neighbour from this Hood
@@ -244,11 +247,11 @@ module Biopsy
       @neighbours.empty?
     end
 
-  end # Hood
-
+  end # Hood 
 
   class TabuThread
 
+    attr_accessor :centre        # the current centre
     attr_accessor :current       # the current set of parameters - needed?
     attr_accessor :best          # the best parameters and score found so far
     attr_accessor :distributions # a hash of Distributions with the parameter 
@@ -260,6 +263,7 @@ module Biopsy
     attr_accessor :hood          # the current hood
 
     def initialize parameter_ranges, start
+      # the best score found so far by this thread
       @best = {:parameters => nil, :score => nil}
       @recent = []
       @best_history = []
@@ -268,27 +272,34 @@ module Biopsy
       sd = 0.5
       hood_size = Biopsy::TabuSearch.hood_size
       sd_inc = Biopsy::TabuSearch::sd_increment_proportion
-      @centre = start
-      @hood = Hood.new(@centre, parameter_ranges, hood_size, sd, sd_inc, @tabu)
+      centre = {:parameters => start, :score => nil}
+      @current = {:parameters => start, :score => nil}
+      @hood = Hood.new(centre, parameter_ranges, hood_size, sd, sd_inc, @tabu)
     end
 
     # get the next neighbour to explore from the current hood
     def next_candidate
       if @hood.last?
-        if @best[:score] && @best[:score] > @centre[:score]
+        if @best[:score] && @best[:score] > @hood.centre[:score]
+          # puts "update the centre with new score of #{@best[:score]}"
           # update the centre
           @hood.set_new_centre @best
+          # @centre = @best
         end
         # make more neighbours from the current centre
         @hood.populate
       end
       @current = {:parameters => @hood.next, :score => nil}
+      return @current[:parameters]
     end
 
     def add_result params, result
       # check that the parameters i'm getting back are the ones i sent out
       if params == @current[:parameters]
         @current[:score] = result
+      else
+        raise RuntimeError, "parameters aren't what was expected"+
+        "\nparams=#{params}\ncurrent=#{@current[:parameters]}"
       end
       if @hood.update_best? @current
         @best = @current
@@ -298,9 +309,11 @@ module Biopsy
   end
 
   # A Tabu Search implementation with a domain-specific probabilistic
-  # learning heuristic for optimising over an unconstrained parameter
+  # learning heuristic for optimising over an constrained parameter
   # space with costly objective evaluation.
   class TabuSearch #< OptmisationAlgorithm
+
+    attr_reader :threads
 
     @@sd_increment_proportion = 0.05
     @@hood_size = 5
