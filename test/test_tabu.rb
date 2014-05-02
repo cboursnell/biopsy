@@ -379,11 +379,49 @@ class TestTabu < Test::Unit::TestCase
       end
     end
 
+    should "check this quadratic function works ok" do
+      def quadratic(params)
+        return if params.size != 3
+        a = params[:a].to_i
+        b = params[:b].to_i
+        c = params[:c].to_i
+        value = - Math.sqrt((a-4)**2) - Math.sqrt((b-4)**2) - Math.sqrt((c-4)**2)
+        return value
+      end
+      params = {:a => 4, :b => 4, :c => 4}
+      assert_equal quadratic(params), 0
+      params = {:a => 0, :b => 0, :c => 0}
+      assert_equal quadratic(params), -12
+    end
+
     should "find the maximum of a simple quadratic" do
-      # -x^2-y^2-z^2
-      # {
-      # {:x => (-10..10).to_a, etc}
-      # }
+      def quadratic(params)
+        return if params.size != 3
+        a = params[:a].to_i
+        b = params[:b].to_i
+        c = params[:c].to_i
+        value = - Math.sqrt((a-4)**2) - Math.sqrt((b-4)**2) - Math.sqrt((c-4)**2)
+        return value
+      end
+      
+      ranges = { :a => (-10..10).to_a, 
+                 :b => (-10..10).to_a, 
+                 :c => (-10..10).to_a, }
+
+      search = Biopsy::TabuSearch.new(ranges,1)
+      start = {:a=>18, :b=>10, :c=>8}
+      current = start
+      search.setup(start)
+      # do target.run
+      130.times do
+        result = quadratic(current)
+        #puts "current = #{current}, result = #{result}"
+        current = search.run_one_iteration(current, result)
+      end
+      
+      assert_equal search.threads[0].best[:parameters][:a], 4
+      assert_equal search.threads[0].best[:parameters][:b], 4
+      assert_equal search.threads[0].best[:parameters][:c], 4
     end
 
   end
