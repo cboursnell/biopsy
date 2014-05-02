@@ -343,7 +343,7 @@ class TestTabu < Test::Unit::TestCase
 
     setup do
       @ranges = {:a => [0,1,2,3,4,5,6], :b => [50,100,150,200,250,300]}
-      @tabu_search = Biopsy::TabuSearch.new(@ranges)
+      @tabu_search = Biopsy::TabuSearch.new(@ranges,5)
     end
 
     teardown do
@@ -355,7 +355,7 @@ class TestTabu < Test::Unit::TestCase
 
     should "set up threads" do
       start = {:a => 0, :b => 0}
-      @tabu_search.setup_threads start
+      @tabu_search.setup start
       assert_equal @tabu_search.threads.length, 5,
        "found #{@tabu_search.threads.length}"
     end

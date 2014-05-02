@@ -295,7 +295,12 @@ module Biopsy
     @@sd_increment_proportion = 0.05
     @@hood_size = 5
 
-    def initialize parameter_ranges, start
+    def initialize parameter_ranges, threads
+      @ranges = parameter_ranges
+      @num_threads = threads
+      @threads = []
+      @current_thread = 0
+      @total_number_of_iterations = 0
     end
 
     def setup start
