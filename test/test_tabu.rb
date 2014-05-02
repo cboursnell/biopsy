@@ -196,13 +196,18 @@ class TestTabu < Test::Unit::TestCase
       assert_equal @hood.best[:parameters], nil
     end
 
-    # should "loosen distribution if can't make more neighbours" do
-    #   count=0
-    #   while @hood.neighbours.size==5
-    #     @hood.generate_neighbour
-    #   end
-    #   assert @hood.distributions[:a].sd > @sd, 
-    # end
+    should "loosen distribution if can't make more neighbours" do
+      assert_equal @hood.distributions[:a].sd, @sd
+      f = 0
+      count = 0
+      while f == 0 && count < 15
+        f = @hood.populate
+        count += 1
+      end
+      assert f > 0
+      assert @hood.distributions[:a].sd > @sd
+      assert @hood.distributions[:b].sd > @sd
+    end
 
     should "set the centre to a new centre" do
       centre = {:parameters => {:a => 2, :b => 1}, :score => 0.2}
