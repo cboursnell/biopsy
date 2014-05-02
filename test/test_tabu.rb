@@ -93,6 +93,16 @@ class TestTabu < Test::Unit::TestCase
       assert_equal sd.round(0), @d.dist.get_standard_deviation, "sd"
     end
 
+    should "truncate the normal distribution" do
+      range = [2, 4, 6, 8, 10, 12, 14, 16, 18]
+      d = Biopsy::Distribution.new(4, range, 0.1, 100)
+      100.times do
+        r = d.draw
+        assert r >= 0, "r is #{r} r < 0"
+        assert r < range.size, "r is #{r}, r >= range.size"
+      end
+    end
+
     should "fail with malformed arguments" do
       assert_raise RuntimeError do
         d = Biopsy::Distribution.new(nil, @range, 0.1, 1)
