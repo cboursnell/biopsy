@@ -127,6 +127,20 @@ class TestTabu < Test::Unit::TestCase
     teardown do
     end
 
+    should "add the centre to the tabu list "+
+           "when the score of centre is nil" do
+      range1 = [7,8,9,10,11,12,13]
+      range2 = [50,100,150,200,250,300]
+      ranges = {:a => range1, :b => range2}
+      centre = {:parameters => {:a => 3, :b => 2}, :score => nil}
+      inc = 0.05
+      size = 5
+      hood = Biopsy::Hood.new(centre, ranges, size, @sd, inc, Set.new)
+      assert_equal hood.neighbours.size, 5,
+          "size should be 5, but is #{hood.neighbours.size}"
+      assert hood.tabu.member?(centre[:parameters])
+    end
+
     should "create a hood with neighbours" do
       assert @hood
       assert_equal @hood.neighbours.size, 5
