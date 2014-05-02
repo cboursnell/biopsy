@@ -248,8 +248,7 @@ class TestTabu < Test::Unit::TestCase
     should "return a new candidate set of parameters" do
       candidate = @tabu_thread.next_candidate
       assert candidate
-      assert_equal candidate[:parameters].size, 2
-      assert_equal candidate[:score], nil
+      assert_equal candidate.size, 2
     end
 
     should "add result" do
