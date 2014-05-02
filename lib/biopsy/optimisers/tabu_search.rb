@@ -5,11 +5,15 @@ require 'pp'
 require 'matrix'
 
 # TODO:
-# - make distributions draw elements from the range, not just from distribution (DONE)
+# - make distributions draw elements from the range, not just from 
+#       distribution (DONE)
 # - test on real SOAPdt data (in progress)
-# - make code to run 100 times for a particular dataset, capture the trajectory, and plot the progress over time along with a histogram of the data distribution
+# - make code to run 100 times for a particular dataset, capture the 
+#       trajectory, and plot the progress over time along with a histogram 
+#       of the data distribution
 # - plot SD and step-size over time
-# - capture data about convergence (done for toy data, need to repeat for other data)
+# - capture data about convergence (done for toy data, need to repeat for 
+#       other data)
 
 module Biopsy
 
