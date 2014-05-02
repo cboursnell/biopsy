@@ -182,16 +182,24 @@ module Biopsy
 
     # update best?
     def update_best? new_result
+      # check new results parameters are inside each range, ie sanity check
       new_result[:parameters].each_pair do |key, value|
         if value < 0 || value >= @ranges[key].size
           raise RuntimeError, "value #{value} is not an index to range #{key}"
         end
       end
+      # update if new is better than old
       better = false
-      if @centre[:score].nil? || new_result[:score] > @centre[:score]
-        if @best[:score].nil? || new_result[:score] > @best[:score]
-          @best = new_result.clone
-          better = true
+      if new_result[:parameters]==@centre[:parameters] && @centre[:score].nil?
+        @best = new_result.clone
+        @centre[:score] = new_result[:score]
+        better = true
+      else
+        if @centre[:score].nil? || new_result[:score] > @centre[:score]
+          if @best[:score].nil? || new_result[:score] > @best[:score]
+            @best = new_result.clone
+            better = true
+          end
         end
       end
       better
