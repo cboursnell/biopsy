@@ -343,7 +343,7 @@ class TestTabu < Test::Unit::TestCase
 
     setup do
       @ranges = {:a => [0,1,2,3,4,5,6], :b => [50,100,150,200,250,300]}
-      @tabu_search = Biopsy::TabuSearch.new(@ranges, 1, 0)
+      @tabu_search = Biopsy::TabuSearch.new(@ranges)
     end
 
     teardown do
@@ -354,8 +354,36 @@ class TestTabu < Test::Unit::TestCase
     end
 
     should "set up threads" do
-      @tabu_search.setup_threads
-      assert_equal @tabu_search.threads.length, 5
+      start = {:a => 0, :b => 0}
+      @tabu_search.setup_threads start
+      assert_equal @tabu_search.threads.length, 5,
+       "found #{@tabu_search.threads.length}"
+    end
+
+    should "take results and return next candidate" do
+    end
+
+    should "process each thread in turn" do
+    end
+
+    should "run one iteration" do
+      start = {:a => 0, :b => 0}
+      @tabu_search.setup_threads start
+      # target.run goes here and returns raw output
+      # the raw output is parsed to give a result
+      params = {:a => 0, :b => 0}
+      result = 1.0
+      new_params = @tabu_search.run_one_iteration(params, result)
+      new_params.each_pair do |k, v|
+        assert params[k]
+      end
+    end
+
+    should "find the maximum of a simple quadratic" do
+      # -x^2-y^2-z^2
+      # {
+      # {:x => (-10..10).to_a, etc}
+      # }
     end
 
   end
