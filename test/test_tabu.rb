@@ -229,7 +229,7 @@ class TestTabu < Test::Unit::TestCase
   context "Tabu Thread" do
     setup do
       @ranges = {:a => [7,8,9,10,11,12,13], :b => [50,100,150,200,250,300]}
-      @start = {:parameters => {:a => 3, :b => 2}, :score => 0.1}
+      @start = {:a => 3, :b => 2}
       @tabu_thread = Biopsy::TabuThread.new(@ranges, @start)
     end
 
