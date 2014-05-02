@@ -59,10 +59,11 @@ module Biopsy
     # loosen the distribution by increasing the sd
     # and regenerating
     def loosen(factor:1)
+      can_loosen = @sd < @maxsd
       @sd += @sd_increment_proportion * factor * @range.size
       self.limit_sd
       self.generate_distribution @mean, @sd
-      @sd == @maxsd # is this as loose as it can be made?
+      can_loosen
     end
 
     # tighten the distribution by reducing the sd
