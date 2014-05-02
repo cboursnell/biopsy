@@ -91,15 +91,13 @@ module Biopsy
         raise RuntimeError, "drawn number must be an integer"
       end
       # keep the value inside the allowed range
-      if r < 0
-        r = @range.size + r
-      elsif r >= @range.size
-        r = r - @range.size
+      while r < 0 || r >= @range.size
+        if r < 0
+          r = 0 - r
+        elsif r >= @range.size
+          r = 2 * @range.size - 1 - r
+        end
       end
-      if !@range[r]
-        puts "r = #{r}, range = #{@range}, range[r] = #{@range[r]}"
-      end
-      #@range[r] # return the value in the range at position r
       r
     end
 
