@@ -337,7 +337,7 @@ class TestTabu < Test::Unit::TestCase
         "centre #{@tabu_thread.hood.centre[:parameters]}"
     end
 
-  end
+  end # context Tabu Thread
 
   context "Tabu Search" do
 
