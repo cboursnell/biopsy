@@ -143,7 +143,7 @@ module Biopsy
     # generate a single neighbour
     def generate_neighbour
       n = 0
-      f = false
+      can_loosen=true
       begin
         if n >= @give_up
           # taking too long to generate a neighbour, 
@@ -153,7 +153,7 @@ module Biopsy
             # if this is already as loose as it can go, then stop
             # loosening and really give up and tell the caller you can't
             # generate any more neighbours
-            f = dist.loosen
+            can_loosen = dist.loosen
             n = 0 # if you don't set this back to zero you'll keep loosening
                   # repeatedly until you get a non-tabu neighbour
           end
@@ -161,7 +161,7 @@ module Biopsy
         # preform the probabilistic step move for each parameter
         neighbour = Hash[ @distributions.map { |param, dist| [param, dist.draw] }]
         n += 1
-      end while self.is_tabu?(neighbour) && !f
+      end while self.is_tabu?(neighbour) && can_loosen
       if is_tabu?(neighbour)
         return false
       else
