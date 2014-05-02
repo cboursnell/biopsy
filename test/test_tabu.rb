@@ -272,10 +272,11 @@ class TestTabu < Test::Unit::TestCase
       assert_equal @tabu_thread.best_history.size, 1
     end
 
-    # should "do something sensible when you ask for the next candidate "+
-    #        "but there aren't any" do
-    #   assert nil, 'not yet implemented'
-    # end
+    should "add a result and that should update the score "+
+        "of the centre of the hood" do
+      @tabu_thread.add_result @start, 0.2
+      assert_equal @tabu_thread.hood.centre[:score], 0.2
+    end
 
     should "generate a new list of neighbours when previous neighhours "+
            "were not any better" do
