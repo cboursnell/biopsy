@@ -252,15 +252,20 @@ class TestTabu < Test::Unit::TestCase
     end
 
     should "add result" do
-      candidate = @tabu_thread.next_candidate
-      @tabu_thread.add_result candidate[:parameters], 0.4
+      @tabu_thread.add_result @start, 0.4
       # should update the best with the new result
       assert_equal @tabu_thread.best[:score], 0.4
       # should put the new result into the best history
+      assert_equal @tabu_thread.best_history.size, 1, 
+          "best history should be length 1, "+
+          "it is #{@tabu_thread.best_history.size}"
+      candidate = @tabu_thread.next_candidate
+      assert candidate[:a], "candidate should be just parameters no score"
+      @tabu_thread.add_result candidate, 0.3
       assert_equal @tabu_thread.best_history.size, 1
 
       candidate = @tabu_thread.next_candidate
-      @tabu_thread.add_result candidate[:parameters], 0.2
+      @tabu_thread.add_result candidate, 0.2
       # the best score should still be the same
       assert_equal @tabu_thread.best[:score], 0.4
       # nothing new should have been added to the best history
