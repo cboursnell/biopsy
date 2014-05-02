@@ -191,7 +191,7 @@ class TestTabu < Test::Unit::TestCase
 
     should "not update the best score because this one is worse" do
       new_score = {:parameters => {:a => 6, :b => 4}, :score => 0.01}
-      @hood.update_best? new_score
+      assert_equal @hood.update_best?(new_score), false
       assert_equal @hood.best[:score], nil
       assert_equal @hood.best[:parameters], nil
     end
