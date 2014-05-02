@@ -308,23 +308,33 @@ class TestTabu < Test::Unit::TestCase
       assert_equal @tabu_thread.hood.neighbours.size, 5,
         "neighbourhood size is #{@tabu_thread.hood.neighbours.size}, should "+
         "be 5"
+
+      @tabu_thread.add_result @start, 0.0 # scoring the centre first
+
       best_candidate = @tabu_thread.next_candidate # 1
-      @tabu_thread.add_result best_candidate[:parameters], 1.0
+      @tabu_thread.add_result best_candidate, 1.0
+
       candidate = @tabu_thread.next_candidate # 2
-      @tabu_thread.add_result candidate[:parameters], 0.0
+      @tabu_thread.add_result candidate, 0.0
+
       candidate = @tabu_thread.next_candidate # 3
-      @tabu_thread.add_result candidate[:parameters], 0.0
+      @tabu_thread.add_result candidate, 0.0
+
       candidate = @tabu_thread.next_candidate # 4
-      @tabu_thread.add_result candidate[:parameters], 0.0
+      @tabu_thread.add_result candidate, 0.0
+
       candidate = @tabu_thread.next_candidate # 5
-      @tabu_thread.add_result candidate[:parameters], 0.0
-      candidate = @tabu_thread.next_candidate # 6
-      assert @tabu_thread.hood.neighbours.size > 0
+      @tabu_thread.add_result candidate, 0.0
+
+      candidate = @tabu_thread.next_candidate # this pulls 
+      
+      assert @tabu_thread.hood.neighbours.size > 0,
         "new neighbourhood size is #{@tabu_thread.hood.neighbours.size}, "+
         "should be 5"
-      assert_equal @tabu_thread.hood.centre, best_candidate, 
+
+      assert_equal @tabu_thread.hood.centre[:parameters], best_candidate, 
         "best candidate #{best_candidate} should equal new "+
-        "centre #{@tabu_thread.hood.centre}"
+        "centre #{@tabu_thread.hood.centre[:parameters]}"
     end
 
   end
