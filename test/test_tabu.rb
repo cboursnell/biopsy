@@ -48,7 +48,7 @@ class TestTabu < Test::Unit::TestCase
     end
 
     should "loosen distribution" do
-      @d.loosen
+      assert_equal @d.loosen, true
       assert_equal @d.sd, 2.1
     end
 
