@@ -141,10 +141,11 @@ module Biopsy
       @sd = sd
       @distributions = {}
       ranges.each_pair do |key, list|
-        @distributions[key] = Biopsy::Distribution.new(
-                                centre[:parameters][key], list, increment, @sd)
+        mean = centre[:parameters][key]
+        @distributions[key] = Biopsy::Distribution.new(mean,
+                                                         list, increment, @sd)
       end
-      @give_up = 50
+      @give_up = 10
       self.populate
     end
 
