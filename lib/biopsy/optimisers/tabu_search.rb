@@ -114,6 +114,7 @@ module Biopsy
   class Hood
 
     attr_accessor :centre, :best, :tabu, :neighbours, :distributions, :size
+    attr_accessor :best_history
 
     def initialize(centre, ranges, size, sd, increment, tabu)
       @centre = centre
@@ -134,6 +135,7 @@ module Biopsy
         :parameters => nil,
         :score => nil
       }
+      @best_history = []
       # probabilities
       @sd = sd
       @distributions = {}
@@ -198,12 +200,14 @@ module Biopsy
       better = false
       if new_result[:parameters]==@centre[:parameters] && @centre[:score].nil?
         @best = new_result.clone
+        @best_history << @best
         @centre[:score] = new_result[:score]
         better = true
       else
         if @centre[:score].nil? || new_result[:score] > @centre[:score]
           if @best[:score].nil? || new_result[:score] > @best[:score]
             @best = new_result.clone
+            @best_history << @best
             better = true
           end
         end
@@ -259,14 +263,12 @@ module Biopsy
     attr_accessor :tabu          # a set of previous parameters that have been
                                  # explored/scored
     attr_accessor :recent        # a list of recent parameters and scores
-    attr_accessor :best_history  # a list of best parameters and scores
     attr_accessor :hood          # the current hood
 
     def initialize parameter_ranges, start
       # the best score found so far by this thread
       @best = {:parameters => nil, :score => nil}
       @recent = []
-      @best_history = []
       @tabu = Set.new # this could be global. but then different threads
                       # couldn't converge
       sd = 0.5
@@ -303,8 +305,11 @@ module Biopsy
       end
       if @hood.update_best? @current
         @best = @current
-        @best_history << @current
       end
+    end
+
+    def best_history
+      hood.best_history
     end
   end
 
