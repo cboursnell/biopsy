@@ -163,7 +163,7 @@ module Biopsy
             # loosening and really give up and tell the caller you can't
             # generate any more neighbours
             can_loosen = dist.loosen
-            n = 0 # if you don't set this back to zero you'll keep loosening
+            # n = 0 # if you don't set this back to zero you'll keep loosening
                   # repeatedly until you get a non-tabu neighbour
           end
         end
