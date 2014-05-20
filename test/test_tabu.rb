@@ -422,14 +422,22 @@ class TestTabu < Test::Unit::TestCase
       current = start
       search.setup(start)
       # do target.run
+      best_at = -1
       2000.times do |i|
         result = Helper.sinusoidal(ranges, current)
+        best_at = i if result == 2.0
+        # puts "#{i}\tcurrent = #{current}, result = #{result}"
         current = search.run_one_iteration(current, result)
       end
       assert_equal search.threads[0].best[:score], 2.0
       assert_equal search.threads[0].best[:parameters][:a], 10
       assert_equal search.threads[0].best[:parameters][:b], 10
       assert_equal search.threads[0].best[:parameters][:c], 10
+      puts "best found at #{best_at}"
+    end
+
+    should "get multiple threads to converge" do
+
     end
 
   end
