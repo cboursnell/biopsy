@@ -45,6 +45,35 @@ class TestParameterSweeper < Test::Unit::TestCase
       assert_equal @sweep.finished?, true, "after 10"
     end
 
+    should 'find the maximum in a complex function' do
+      def sinusoidal(ranges, params)
+        return if params.size != 3
+        a = ranges[:a][params[:a].to_i]
+        b = ranges[:b][params[:b].to_i]
+        c = ranges[:c][params[:c].to_i]
+        value = Math.cos(a) + Math.cos(b) - (a/10.0)**2 - (b/10.0)**2 - (c/20.0)**2
+        return value
+      end
+
+      ranges = { :a => (-10..20).to_a,
+                 :b => (-10..20).to_a,
+                 :c => (-10..20).to_a }
+
+      sweep = Biopsy::ParameterSweeper.new(ranges)
+      sweep.setup
+
+      p = sweep.next
+      while p != nil
+        a = sinusoidal(ranges, p)
+        p = sweep.run_one_iteration(p, a)
+      end
+      assert_equal sweep.best[:parameters][:a], 10
+      assert_equal sweep.best[:parameters][:b], 10
+      assert_equal sweep.best[:parameters][:c], 10
+      assert_equal sweep.best[:score], 2.0
+    end
+
+
   end # Experiment context
 
 end # TestExperiment
