@@ -65,6 +65,7 @@ module Biopsy
     def loosen(factor:1)
       can_loosen = @sd < @maxsd
       @sd += @sd_increment_proportion * factor * @range.size
+      # puts "setting new sd to #{@sd}"
       self.limit_sd
       self.generate_distribution @mean, @sd
       can_loosen
@@ -182,6 +183,7 @@ module Biopsy
       unless centre[:parameters] && centre[:score]
         raise RuntimeError, "centre has wrong parameters" 
       end
+      # puts "setting new centre to #{centre}"
       @centre = centre
       @distributions.each_pair do |key, dist|
         dist.update centre[:parameters][key], @sd
