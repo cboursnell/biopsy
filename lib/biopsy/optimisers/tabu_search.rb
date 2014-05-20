@@ -91,7 +91,7 @@ module Biopsy
 
     # draw from the distribution
     def draw
-      r = @dist.rng.round.to_i # r is an index into range
+      r = @dist.rng.round.to_i
       unless r.is_a? Integer
         raise RuntimeError, "drawn number must be an integer"
       end
