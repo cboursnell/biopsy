@@ -10,5 +10,11 @@ Rake::TestTask.new do |t|
   t.test_files = ['test/test_tabu.rb']
 end
 
+Rake::TestTask.new do |t|
+  t.name = :sweep
+  t.libs << 'test'
+  t.test_files = ['test/test_parametersweep.rb']
+end
+
 desc "Run tests"
 task :default => :test
