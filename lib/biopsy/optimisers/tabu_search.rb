@@ -233,12 +233,12 @@ module Biopsy
         end
       end
       if fails > 0
+        puts "i wish i could backtrack here"
         # maybe do something about this?
         # do some backtracking
         # and if that fails or can't be done then
         # add random non-tabu items from the population to the neighbours
         # Hash[@ranges.map { |p, r| [p, r.sample] }] 
-        #
       end
       fails
     end
