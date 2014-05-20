@@ -381,33 +381,17 @@ class TestTabu < Test::Unit::TestCase
     end
 
     should "check this quadratic function works ok" do
-      def quadratic(ranges, params)
-        return if params.size != 3
-        a = ranges[:a][(params[:a].to_i)]
-        b = ranges[:b][(params[:b].to_i)]
-        c = ranges[:c][(params[:c].to_i)]
-        value = - Math.sqrt((a-4)**2) - Math.sqrt((b-4)**2) - Math.sqrt((c-4)**2)
-        return value
-      end
       ranges = { :a => (-10..10).to_a, 
                  :b => (-10..10).to_a, 
                  :c => (-10..10).to_a }
       params = {:a => 14, :b => 14, :c => 14}
-      assert_equal quadratic(ranges, params), 0
+      assert_equal Helper.quadratic(ranges, params), 0
       params = {:a => 10, :b => 10, :c => 10}
-      assert_equal quadratic(ranges, params), -12
+      assert_equal Helper.quadratic(ranges, params), -12
     end
 
     should "find the maximum of a simple quadratic" do
-      def quadratic(ranges, params)
-        return if params.size != 3
-        a = ranges[:a][(params[:a].to_i)]
-        b = ranges[:b][(params[:b].to_i)]
-        c = ranges[:c][(params[:c].to_i)]
-        value = - Math.sqrt((a-4)**2) - Math.sqrt((b-4)**2) - Math.sqrt((c-4)**2)
-        return value
-      end
-      
+
       ranges = { :a => (-10..10).to_a, 
                  :b => (-10..10).to_a, 
                  :c => (-10..10).to_a }
@@ -418,7 +402,7 @@ class TestTabu < Test::Unit::TestCase
       search.setup(start)
       # do target.run
       130.times do
-        result = quadratic(ranges, current)
+        result = Helper.quadratic(ranges, current)
         #puts "current = #{current}, result = #{result}"
         current = search.run_one_iteration(current, result)
       end
@@ -429,15 +413,6 @@ class TestTabu < Test::Unit::TestCase
     end
 
     should "find the maximum in a more complex function" do
-      def sinusoidal(ranges, params)
-        return if params.size != 3
-        a = ranges[:a][params[:a].to_i]
-        b = ranges[:b][params[:b].to_i]
-        c = ranges[:c][params[:c].to_i]
-        value = Math.cos(a) + Math.cos(b) - (a/10.0)**2 - (b/10.0)**2 - (c/20.0)**2
-        return value
-      end
-
       ranges = { :a => (-10..20).to_a, 
                  :b => (-10..20).to_a, 
                  :c => (-10..20).to_a }
@@ -448,8 +423,7 @@ class TestTabu < Test::Unit::TestCase
       search.setup(start)
       # do target.run
       2000.times do |i|
-        result = sinusoidal(ranges, current)
-        puts "#{i}\tcurrent = #{current}, result = #{result}"
+        result = Helper.sinusoidal(ranges, current)
         current = search.run_one_iteration(current, result)
       end
       assert_equal search.threads[0].best[:score], 2.0

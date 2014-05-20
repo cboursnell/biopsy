@@ -76,6 +76,25 @@ class Helper
     }
   end
 
+  def self.sinusoidal(ranges, params)
+    return if params.size != 3
+    a = ranges[:a][params[:a].to_i]
+    b = ranges[:b][params[:b].to_i]
+    c = ranges[:c][params[:c].to_i]
+    value = Math.cos(a) + Math.cos(b) - (a/10.0)**2 - (b/10.0)**2 - (c/20.0)**2
+    return value
+  end
+
+  def self.quadratic(ranges, params)
+    return if params.size != 3
+    a = ranges[:a][(params[:a].to_i)]
+    b = ranges[:b][(params[:b].to_i)]
+    c = ranges[:c][(params[:c].to_i)]
+    value = - Math.sqrt((a-4)**2) - Math.sqrt((b-4)**2) - Math.sqrt((c-4)**2)
+    return value
+  end
+      
+
   # Setup the directory for target
   def setup_target
     @target_dir = File.join(@tmp_dir, 'targets')
