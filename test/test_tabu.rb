@@ -252,11 +252,12 @@ class TestTabu < Test::Unit::TestCase
     end
 
     should "add result" do
+      # add a score for the centre
       @tabu_thread.add_result @start, 0.4
       # should update the best with the new result
       assert_equal @tabu_thread.best[:score], 0.4
       # should put the new result into the best history
-      assert_equal @tabu_thread.best_history.size, 1, 
+      assert_equal @tabu_thread.best_history.size, 1,
           "best history should be length 1, "+
           "it is #{@tabu_thread.best_history.size}"
       candidate = @tabu_thread.next_candidate
@@ -380,48 +381,81 @@ class TestTabu < Test::Unit::TestCase
     end
 
     should "check this quadratic function works ok" do
-      def quadratic(params)
+      def quadratic(ranges, params)
         return if params.size != 3
-        a = params[:a].to_i
-        b = params[:b].to_i
-        c = params[:c].to_i
+        a = ranges[:a][(params[:a].to_i)]
+        b = ranges[:b][(params[:b].to_i)]
+        c = ranges[:c][(params[:c].to_i)]
         value = - Math.sqrt((a-4)**2) - Math.sqrt((b-4)**2) - Math.sqrt((c-4)**2)
         return value
       end
-      params = {:a => 4, :b => 4, :c => 4}
-      assert_equal quadratic(params), 0
-      params = {:a => 0, :b => 0, :c => 0}
-      assert_equal quadratic(params), -12
+      ranges = { :a => (-10..10).to_a, 
+                 :b => (-10..10).to_a, 
+                 :c => (-10..10).to_a }
+      params = {:a => 14, :b => 14, :c => 14}
+      assert_equal quadratic(ranges, params), 0
+      params = {:a => 10, :b => 10, :c => 10}
+      assert_equal quadratic(ranges, params), -12
     end
 
     should "find the maximum of a simple quadratic" do
-      def quadratic(params)
+      def quadratic(ranges, params)
         return if params.size != 3
-        a = params[:a].to_i
-        b = params[:b].to_i
-        c = params[:c].to_i
+        a = ranges[:a][(params[:a].to_i)]
+        b = ranges[:b][(params[:b].to_i)]
+        c = ranges[:c][(params[:c].to_i)]
         value = - Math.sqrt((a-4)**2) - Math.sqrt((b-4)**2) - Math.sqrt((c-4)**2)
         return value
       end
       
       ranges = { :a => (-10..10).to_a, 
                  :b => (-10..10).to_a, 
-                 :c => (-10..10).to_a, }
+                 :c => (-10..10).to_a }
 
       search = Biopsy::TabuSearch.new(ranges,1)
-      start = {:a=>18, :b=>10, :c=>8}
+      start = {:a=>10, :b=>10, :c=>8}
       current = start
       search.setup(start)
       # do target.run
       130.times do
-        result = quadratic(current)
+        result = quadratic(ranges, current)
         #puts "current = #{current}, result = #{result}"
         current = search.run_one_iteration(current, result)
       end
       
-      assert_equal search.threads[0].best[:parameters][:a], 4
-      assert_equal search.threads[0].best[:parameters][:b], 4
-      assert_equal search.threads[0].best[:parameters][:c], 4
+      assert_equal search.threads[0].best[:parameters][:a], 14
+      assert_equal search.threads[0].best[:parameters][:b], 14
+      assert_equal search.threads[0].best[:parameters][:c], 14
+    end
+
+    should "find the maximum in a more complex function" do
+      def sinusoidal(ranges, params)
+        return if params.size != 3
+        a = ranges[:a][params[:a].to_i]
+        b = ranges[:b][params[:b].to_i]
+        c = ranges[:c][params[:c].to_i]
+        value = Math.cos(a) + Math.cos(b) - (a/10.0)**2 - (b/10.0)**2 - (c/20.0)**2
+        return value
+      end
+
+      ranges = { :a => (-10..20).to_a, 
+                 :b => (-10..20).to_a, 
+                 :c => (-10..20).to_a }
+
+      search = Biopsy::TabuSearch.new(ranges, 1)
+      start = { :a => 23, :b => 23, :c => 23 }
+      current = start
+      search.setup(start)
+      # do target.run
+      2000.times do |i|
+        result = sinusoidal(ranges, current)
+        puts "#{i}\tcurrent = #{current}, result = #{result}"
+        current = search.run_one_iteration(current, result)
+      end
+      assert_equal search.threads[0].best[:score], 2.0
+      assert_equal search.threads[0].best[:parameters][:a], 10
+      assert_equal search.threads[0].best[:parameters][:b], 10
+      assert_equal search.threads[0].best[:parameters][:c], 10
     end
 
   end
