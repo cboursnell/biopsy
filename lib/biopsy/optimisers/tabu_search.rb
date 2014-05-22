@@ -339,11 +339,20 @@ module Biopsy
     end
 
     def setup_threads start
-      # the first thread starts at the specified start point
-      @threads << TabuThread.new(@ranges, start)
-      (@num_threads-1).times do
-        # the remaining threads start at a random point
-        @threads << TabuThread.new(@ranges, self.random_start_point)
+      if start.is_a?(Array)
+        [start.length, @num_threads].min.times do
+          @threads << TabuThread.new(@ranges, start.shift)
+        end
+        while @threads.length < @num_threads
+          @threads << TabuThread.new(@ranges, self.random_start_point)
+        end
+      else
+        # the first thread starts at the specified start point
+        @threads << TabuThread.new(@ranges, start)
+        (@num_threads-1).times do
+          # the remaining threads start at a random point
+          @threads << TabuThread.new(@ranges, self.random_start_point)
+        end
       end
     end
 

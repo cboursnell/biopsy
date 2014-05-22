@@ -439,6 +439,31 @@ class TestTabu < Test::Unit::TestCase
       puts "best found at #{best_at}"
     end
 
+    should "be able to specify multiple start locations" do
+      ranges = { :a => (-10..20).to_a, 
+                 :b => (-10..20).to_a, 
+                 :c => (-10..20).to_a }
+
+      search = Biopsy::TabuSearch.new(ranges, 3)
+      start = []
+      start << { :a => 23, :b => 23, :c => 23 }
+      start << { :a => 5, :b => 3, :c => 2 }
+      start << { :a => 20, :b => 5, :c => 20 }
+      current = start[0]
+      search.setup(start)
+      assert_equal search.threads.length, 3
+      assert search.threads[0].hood, "centre is nil"
+      assert_equal search.threads[0].hood.centre[:parameters][:a], 23
+      assert_equal search.threads[0].hood.centre[:parameters][:b], 23
+      assert_equal search.threads[0].hood.centre[:parameters][:c], 23
+      assert_equal search.threads[1].hood.centre[:parameters][:a], 5
+      assert_equal search.threads[1].hood.centre[:parameters][:b], 3
+      assert_equal search.threads[1].hood.centre[:parameters][:c], 2
+      assert_equal search.threads[2].hood.centre[:parameters][:a], 20
+      assert_equal search.threads[2].hood.centre[:parameters][:b], 5
+      assert_equal search.threads[2].hood.centre[:parameters][:c], 20
+    end
+
     should "get multiple threads to converge" do
 
     end
