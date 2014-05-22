@@ -496,6 +496,39 @@ class TestTabu < Test::Unit::TestCase
       assert_equal search.threads[2].best[:parameters][:c], 10
     end
 
+    should "stop when criteria are met" do
+      ranges = { :a => (-10..20).to_a, 
+                 :b => (-10..20).to_a, 
+                 :c => (-10..20).to_a }
+
+      search = Biopsy::TabuSearch.new(ranges, 3)
+      start = []
+      start << { :a => 23, :b => 23, :c => 23 }
+      start << { :a => 5, :b => 3, :c => 2 }
+      start << { :a => 20, :b => 5, :c => 20 }
+      search.setup(start)
+
+      current = search.threads[0].current[:parameters]
+      i=10000
+      while !search.finished? and i>0
+        result = Helper.sinusoidal(ranges, current)
+        # puts "<Test> got score #{result} from #{current}"
+        current = search.run_one_iteration(current, result)
+        i -= 1
+      end
+      assert i > 0, "didn't finish in time. used up all iterations"
+      assert_equal search.threads[0].best[:score], 2.0
+      assert_equal search.threads[0].best[:parameters][:a], 10
+      assert_equal search.threads[0].best[:parameters][:b], 10
+      assert_equal search.threads[0].best[:parameters][:c], 10
+      assert_equal search.threads[1].best[:score], 2.0
+      assert_equal search.threads[1].best[:parameters][:a], 10
+      assert_equal search.threads[1].best[:parameters][:b], 10
+      assert_equal search.threads[1].best[:parameters][:c], 10
+      assert_equal search.threads[2].best[:score], 2.0
+      assert_equal search.threads[2].best[:parameters][:a], 10
+      assert_equal search.threads[2].best[:parameters][:b], 10
+      assert_equal search.threads[2].best[:parameters][:c], 10
     end
 
   end
