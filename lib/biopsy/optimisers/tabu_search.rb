@@ -126,7 +126,7 @@ module Biopsy
         end
       end
       # tabu
-      @tabu = tabu 
+      @tabu = tabu
       # neighbourhood
       @size = size # number of neighbours that will be created
       @neighbours = []
@@ -202,6 +202,7 @@ module Biopsy
       # update if new is better than old
       better = false
       if new_result[:parameters]==@centre[:parameters] && @centre[:score].nil?
+        # puts "new result matches centre paramters"
         @best = new_result.clone
         @best_history << @best
         @centre[:score] = new_result[:score]
@@ -285,6 +286,8 @@ module Biopsy
     # get the next neighbour to explore from the current hood
     def next_candidate
       if @hood.last?
+        # puts "@best:score = #{@best[:score]}"
+        # puts "@hood.centre:score = #{@hood.centre[:score]}"
         if @best[:score] && @best[:score] > @hood.centre[:score]
           # puts "update the centre with new score of #{@best[:score]}"
           # update the centre
@@ -361,9 +364,12 @@ module Biopsy
     # take the result and pass it to the current thread
     #
     # return a new set of parameters to experiment
+    #
     def run_one_iteration(params, result)
+      # puts "<TabuSaerch:run_one_iteration> current thread = #{@current_thread}"
       raise RuntimeError, "haven't made any threads yet" if @threads.size==0
       @total_number_of_iterations += 1
+      # puts "<TabuSaerch:run_one_iteration> adding result #{result} to thread #{@current_thread} for #{params}"
       @threads[@current_thread].add_result(params, result)
       @current_thread = (@current_thread + 1) % @num_threads
       # puts "<TabuSaerch:run_one_iteration> set current thread to #{@current_thread} and getting next candidate"
@@ -396,7 +402,7 @@ module Biopsy
     end
 
     def finished?
-      return true if @total_number_of_iterations > 100
+      return true # if @total_number_of_iterations > 100
     end
 
     def write_data
