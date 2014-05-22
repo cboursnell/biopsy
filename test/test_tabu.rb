@@ -198,7 +198,10 @@ class TestTabu < Test::Unit::TestCase
     end
 
     should "loosen distribution if can't make more neighbours" do
-      assert_equal @hood.distributions[:a].sd, @sd
+      assert_equal @hood.distributions[:a].sd, @sd,
+          "#{@hood.distributions[:a].sd} should equal #{@sd} but it doesn't"
+      assert_equal @hood.distributions[:b].sd, @sd,
+          "#{@hood.distributions[:b].sd} should equal #{@sd} but it doesn't"
       f = 0
       count = 0
       while f == 0 && count < 15
