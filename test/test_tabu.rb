@@ -125,6 +125,7 @@ class TestTabu < Test::Unit::TestCase
     end
 
     teardown do
+      @hood=nil
     end
 
     should "add the centre to the tabu list "+
