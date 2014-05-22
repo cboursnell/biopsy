@@ -366,7 +366,12 @@ module Biopsy
       @total_number_of_iterations += 1
       @threads[@current_thread].add_result(params, result)
       @current_thread = (@current_thread + 1) % @num_threads
-      @threads[@current_thread].next_candidate
+      # puts "<TabuSaerch:run_one_iteration> set current thread to #{@current_thread} and getting next candidate"
+      if @threads[@current_thread].current[:score] # has already been scored
+        return @threads[@current_thread].next_candidate
+      else
+        return @threads[@current_thread].current[:parameters]
+      end
     end
 
     # class methods
