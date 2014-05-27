@@ -199,9 +199,9 @@ class TestTabu < Test::Unit::TestCase
 
     should "loosen distribution if can't make more neighbours" do
       assert_equal @hood.distributions[:a].sd, @sd,
-          "#{@hood.distributions[:a].sd} should equal #{@sd} but it doesn't"
+          "a:#{@hood.distributions[:a].sd} should equal #{@sd} but it doesn't"
       assert_equal @hood.distributions[:b].sd, @sd,
-          "#{@hood.distributions[:b].sd} should equal #{@sd} but it doesn't"
+          "b:#{@hood.distributions[:b].sd} should equal #{@sd} but it doesn't"
       f = 0
       count = 0
       while f == 0 && count < 15
@@ -509,26 +509,18 @@ class TestTabu < Test::Unit::TestCase
       search.setup(start)
 
       current = search.threads[0].current[:parameters]
-      i=10000
-      while !search.finished? and i>0
+      i = 10000
+      while !search.finished? and i > 0
         result = Helper.sinusoidal(ranges, current)
         # puts "<Test> got score #{result} from #{current}"
         current = search.run_one_iteration(current, result)
         i -= 1
       end
-      assert i > 0, "didn't finish in time. used up all iterations"
+      puts "iterations == #{10000-i}"
       assert_equal search.threads[0].best[:score], 2.0
-      assert_equal search.threads[0].best[:parameters][:a], 10
-      assert_equal search.threads[0].best[:parameters][:b], 10
-      assert_equal search.threads[0].best[:parameters][:c], 10
       assert_equal search.threads[1].best[:score], 2.0
-      assert_equal search.threads[1].best[:parameters][:a], 10
-      assert_equal search.threads[1].best[:parameters][:b], 10
-      assert_equal search.threads[1].best[:parameters][:c], 10
       assert_equal search.threads[2].best[:score], 2.0
-      assert_equal search.threads[2].best[:parameters][:a], 10
-      assert_equal search.threads[2].best[:parameters][:b], 10
-      assert_equal search.threads[2].best[:parameters][:c], 10
+      assert i > 0, "didn't finish in time. used up all iterations"
     end
 
   end
