@@ -286,13 +286,10 @@ module Biopsy
     # get the next neighbour to explore from the current hood
     def next_candidate
       if @hood.last?
-        # puts "@best:score = #{@best[:score]}"
-        # puts "@hood.centre:score = #{@hood.centre[:score]}"
         if @best[:score] && @best[:score] > @hood.centre[:score]
           # puts "update the centre with new score of #{@best[:score]}"
           # update the centre
           @hood.set_new_centre @best
-          # @centre = @best
         end
         # make more neighbours from the current centre
         @hood.populate
