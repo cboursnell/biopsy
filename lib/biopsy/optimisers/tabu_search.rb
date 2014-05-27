@@ -399,7 +399,18 @@ module Biopsy
     end
 
     def finished?
-      return true # if @total_number_of_iterations > 100
+      scores=[]
+      @threads.each do |t|
+        scores << t.best[:score]
+      end
+      if scores.include?(nil)
+        return false
+      elsif scores.min == scores.max and !scores[0].nil?
+        puts "scores are #{scores.min} and #{scores.max}"
+        return true
+      else
+        return false # if @total_number_of_iterations > 100
+      end
     end
 
     def write_data
