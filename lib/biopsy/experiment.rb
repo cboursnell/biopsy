@@ -156,8 +156,8 @@ module Biopsy
           result = @objective.run_for_output(raw_output, @threads, nil)
           @iteration_count += 1
           self.print_progress(@iteration_count, @current_params, result, @best)
+          @scores[@current_params.to_s] = result
         end
-        @scores[@current_params.to_s] = result
         # get next steps from optimiser
         @current_params = @algorithm.run_one_iteration(@current_params, result)
       end
