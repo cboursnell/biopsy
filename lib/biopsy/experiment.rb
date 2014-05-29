@@ -144,11 +144,11 @@ module Biopsy
     # Returns the output of the optimiser.
     def run_iteration
       # create temp dir
+      param_key = make_key(@current_params)
       Dir.chdir(self.create_tempdir) do
         # run the target
         raw_output = @target.run @current_params.merge(@options)
         # evaluate with objectives
-        param_key = @current_params.to_s
         result = nil
         if @scores.key? param_key
           result = @scores[param_key]
@@ -200,6 +200,16 @@ module Biopsy
         # end
       end
       FileUtils.rm_rf @last_tempdir
+    end
+
+    def make_key(hash)
+      s=""
+      size = hash.size
+      hash.each_pair.with_index do |(k,v), i|
+        s << "#{k}-#{v}"
+        s << "." if i < size-1
+      end
+      s
     end
 
     # create a guaranteed random temporary directory for storing outputs
