@@ -161,7 +161,7 @@ module Biopsy
         # get next steps from optimiser
         @current_params = @algorithm.run_one_iteration(@current_params, result)
       end
-      self.cleanup
+      self.cleanup(param_key)
     end
 
     def print_progress(iteration, params, score, best)
@@ -180,15 +180,15 @@ module Biopsy
       end
     end
     
-    def cleanup
+    def cleanup(param_key)
       # TODO: make this work
       # remove all but essential files
       essential_files = ""
       if Settings.instance.keep_intermediates
-        # @objectives isn't mentioned anywhere in the rest of this file
-        @objectives.values.each do |objective|
-          essential_files += objective.essential_files
-        end
+        # extract scafseq file, rename it and move it to somewhere nice
+        # then delete the directory
+        # puts "trying to rename: #{@last_tempdir}/sdt.scafSeq  to  #{param_key}.fa"
+        File.rename("#{@last_tempdir}/sdt.scafSeq", "contigs-#{param_key}.fa")
       end
       Dir["*"].each do |file|
         next
