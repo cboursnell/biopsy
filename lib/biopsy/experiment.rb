@@ -190,15 +190,15 @@ module Biopsy
         # puts "trying to rename: #{@last_tempdir}/sdt.scafSeq  to  #{param_key}.fa"
         File.rename("#{@last_tempdir}/sdt.scafSeq", "contigs-#{param_key}.fa")
       end
-      Dir["*"].each do |file|
-        next
+      # Dir["*"].each do |file|
+        # next
         # TODO: implement this
         # next if File.directory? file
         # if essential_files && essential_files.include?(file)
         #   `gzip #{file}` if Settings.instance.gzip_intermediates
         #   FileUtils.mv("#{file}.gz", '../output')
         # end
-      end
+      # end
       FileUtils.rm_rf @last_tempdir
     end
 
